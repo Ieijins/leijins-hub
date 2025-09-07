@@ -1,7 +1,3 @@
--- FlyFling Script - Standalone Version
--- Extracted from Infinite Yield script
--- Features: FlyFling toggle with draggable UI
-
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
 local TweenService = game:GetService("TweenService")
@@ -13,7 +9,6 @@ local Character = Player.Character or Player.CharacterAdded:Wait()
 local Humanoid = Character:FindFirstChildOfClass("Humanoid")
 local RootPart = Character:FindFirstChild("HumanoidRootPart") or Character:FindFirstChild("Torso") or Character:FindFirstChild("UpperTorso")
 
--- Variables
 local FLYING = false
 local vehicleflyspeed = 1
 local flyKeyDown, flyKeyUp
@@ -22,7 +17,6 @@ local gyroHandlerName = "GyroHandler_" .. math.random(1000, 9999)
 local velocityHandler
 local gyroHandler
 
--- Utility Functions
 local function getRoot(char)
     local rootPart = char:FindFirstChild('HumanoidRootPart') or char:FindFirstChild('Torso') or char:FindFirstChild('UpperTorso')
     return rootPart
@@ -37,7 +31,6 @@ local function randomString()
     return table.concat(array)
 end
 
--- Fly Functions
 local function NOFLY()
     FLYING = false
     if flyKeyDown or flyKeyUp then 
@@ -54,14 +47,11 @@ local function NOFLY()
         workspace.CurrentCamera.CameraType = Enum.CameraType.Custom 
     end)
     
-    -- Clean up velocity and gyro handlers
     if velocityHandler and velocityHandler.Parent then
-        velocityHandler:Destroy()
-        velocityHandler = nil
+        velocityHandler.MaxForce = Vector3.new(0,0,0)
     end
     if gyroHandler and gyroHandler.Parent then
-        gyroHandler:Destroy()
-        gyroHandler = nil
+        gyroHandler.MaxTorque = Vector3.new(0,0,0)
     end
 end
 
@@ -85,12 +75,19 @@ local function sFLY(vfly)
 
     local function FLY()
         FLYING = true
-        gyroHandler = Instance.new('BodyGyro')
-        velocityHandler = Instance.new('BodyVelocity')
         
-        gyroHandler.P = 9e4
-        gyroHandler.Parent = T
-        velocityHandler.Parent = T
+        if not gyroHandler or not gyroHandler.Parent then
+            gyroHandler = Instance.new('BodyGyro')
+            gyroHandler.P = 9e4
+            gyroHandler.Parent = T
+            gyroHandler.Name = gyroHandlerName
+        end
+        if not velocityHandler or not velocityHandler.Parent then
+            velocityHandler = Instance.new('BodyVelocity')
+            velocityHandler.Parent = T
+            velocityHandler.Name = velocityHandlerName
+        end
+
         gyroHandler.MaxTorque = Vector3.new(9e9, 9e9, 9e9)
         gyroHandler.CFrame = T.CFrame
         velocityHandler.Velocity = Vector3.new(0, 0, 0)
@@ -122,10 +119,9 @@ local function sFLY(vfly)
             CONTROL = {F = 0, B = 0, L = 0, R = 0, Q = 0, E = 0}
             lCONTROL = {F = 0, B = 0, L = 0, R = 0, Q = 0, E = 0}
             SPEED = 0
-            
-            -- Ensure handlers are destroyed on stopping
-            if velocityHandler and velocityHandler.Parent then velocityHandler:Destroy() end
-            if gyroHandler and gyroHandler.Parent then gyroHandler:Destroy() end
+
+            if velocityHandler and velocityHandler.Parent then velocityHandler.MaxForce = Vector3.new(0,0,0) end
+            if gyroHandler and gyroHandler.Parent then gyroHandler.MaxTorque = Vector3.new(0,0,0) end
 
             if humanoid then humanoid.PlatformStand = false end
         end)
@@ -167,7 +163,6 @@ local function sFLY(vfly)
     FLY()
 end
 
--- WalkFling Functions
 local walkflinging = false
 local function walkfling()
     local humanoid = Player.Character:FindFirstChildWhichIsA("Humanoid")
@@ -209,7 +204,6 @@ local function walkfling_stop()
     walkflinging = false
 end
 
--- Main FlyFling Function
 local function flyfling(speed)
     if speed and tonumber(speed) then
         vehicleflyspeed = tonumber(speed)
@@ -226,7 +220,6 @@ local function unflyfling()
     walkfling_stop()
 end
 
--- UI Creation
 local function createUI()
     local ScreenGui = Instance.new("ScreenGui")
     ScreenGui.Name = "FlyFlingUI_" .. randomString()
@@ -287,7 +280,6 @@ local function createUI()
     SpeedLabel.Text = "Speed: " .. vehicleflyspeed
     SpeedLabel.Parent = MainFrame
     
-    -- Dragging functionality
     local UserInputService = game:GetService("UserInputService")
     local dragging
     local dragInput
@@ -325,7 +317,6 @@ local function createUI()
         end
     end)
     
-    -- Toggle functionality
     local isEnabled = false
     
     UserInputService.InputBegan:Connect(function(input, gameProcessed)
@@ -340,7 +331,6 @@ local function createUI()
         end
     end)
     
-    -- Speed adjustment
     local SpeedUp = Instance.new("TextButton")
     SpeedUp.Name = "SpeedUp"
     SpeedUp.Size = UDim2.new(0.15, 0, 0, 20)
@@ -389,7 +379,6 @@ local function createUI()
         end
     end)
     
-    -- Close button
     local CloseButton = Instance.new("TextButton")
     CloseButton.Name = "CloseButton"
     CloseButton.Size = UDim2.new(0, 20, 0, 20)
@@ -416,10 +405,8 @@ local function createUI()
     return ScreenGui
 end
 
--- Initialize
 local ui = createUI()
 
--- Character respawn handling
 Player.CharacterAdded:Connect(function(char)
     Character = char
     Humanoid = char:WaitForChild("Humanoid")
