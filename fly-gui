@@ -262,7 +262,7 @@ local function createUI()
     ToggleButton.Font = Enum.Font.Code
     ToggleButton.TextSize = 16
     ToggleButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-    ToggleButton.Text = "renjis project start"
+    ToggleButton.Text = "mulai"
     ToggleButton.Parent = MainFrame
     
     local ToggleCorner = Instance.new("UICorner")
